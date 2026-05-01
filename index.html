@@ -12,8 +12,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e1f23">
     
-    <!-- Web App Manifest (Data URI) -->
-    <link rel="manifest" href='data:application/manifest+json,{"name":"HisabKitab","short_name":"HK","start_url":".","display":"standalone","background_color":"#1e1f23","theme_color":"#1e1f23","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2454/2454291.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'>
+    <!-- Web App Manifest (Corrected for PWA Installability) -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"HisabKitab Finance Tracker","short_name":"HisabKitab","start_url":"./index.html","display":"standalone","background_color":"#1e1f23","theme_color":"#1e1f23","description":"Track, Plan, and Grow your finances with Neumorphic UI.","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2454/2454291.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"https://cdn-icons-png.flaticon.com/512/2454/2454291.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}'>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -37,90 +37,42 @@
             overscroll-behavior-y: contain;
         }
 
-        /* Neumorphic Shapes */
-        .neu-flat {
-            background: var(--card);
-            box-shadow: var(--dark-shadow), var(--light-shadow);
-        }
+        .neu-flat { background: var(--card); box-shadow: var(--dark-shadow), var(--light-shadow); }
+        .neu-pressed { background: var(--card); box-shadow: var(--inset-shadow); }
+        .neu-button { background: var(--card); box-shadow: var(--dark-shadow), var(--light-shadow); transition: all 0.2s ease; }
+        .neu-button:active { box-shadow: var(--inset-shadow); transform: scale(0.98); }
+        .neu-input { background: var(--card); box-shadow: var(--inset-shadow); border: none; outline: none; }
 
-        .neu-pressed {
-            background: var(--card);
-            box-shadow: var(--inset-shadow);
-        }
-
-        .neu-button {
-            background: var(--card);
-            box-shadow: var(--dark-shadow), var(--light-shadow);
-            transition: all 0.2s ease;
-        }
-
-        .neu-button:active {
-            box-shadow: var(--inset-shadow);
-            transform: scale(0.98);
-        }
-
-        .neu-input {
-            background: var(--card);
-            box-shadow: var(--inset-shadow);
-            border: none;
-            outline: none;
-        }
-
-        /* Nav & Overlays */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .safe-bottom { padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
         
-        /* Custom Checkbox */
         input[type="checkbox"] {
-            appearance: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 6px;
-            background: var(--card);
-            box-shadow: var(--dark-shadow), var(--light-shadow);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
+            appearance: none; width: 24px; height: 24px; border-radius: 6px;
+            background: var(--card); box-shadow: var(--dark-shadow), var(--light-shadow);
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
-        input[type="checkbox"]:checked {
-            box-shadow: var(--inset-shadow);
-        }
-        input[type="checkbox"]:checked::after {
-            content: '✓';
-            color: #10b981;
-            font-weight: bold;
-        }
+        input[type="checkbox"]:checked { box-shadow: var(--inset-shadow); }
+        input[type="checkbox"]:checked::after { content: '✓'; color: #10b981; font-weight: bold; }
 
         .progress-fill { transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
-        
         #categoryModal.hidden { opacity: 0; pointer-events: none; display: none; }
+        .logo-pressed { filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)) drop-shadow(-1px -1px 1px rgba(255,255,255,0.05)); }
 
-        /* Pressed Logo Effect */
-        .logo-pressed {
-            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)) drop-shadow(-1px -1px 1px rgba(255,255,255,0.05));
-        }
-
-        /* Pulsing Install Button Animation */
         @keyframes pulse {
             0% { box-shadow: var(--dark-shadow), var(--light-shadow); }
             50% { box-shadow: 0 0 15px #6366f1; }
             100% { box-shadow: var(--dark-shadow), var(--light-shadow); }
         }
-        .install-pulse {
-            animation: pulse 2s infinite;
-        }
+        .install-pulse { animation: pulse 2s infinite; }
     </style>
 </head>
 <body class="min-h-screen">
 
     <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col pb-24">
         
-        <!-- Header with Cool HK Logo -->
         <header class="p-6 pb-2 sticky top-0 bg-[#1e1f23] z-10">
             <div class="flex justify-between items-start mb-4">
                 <div class="flex flex-col">
-                    <!-- Custom Neumorphic Logo -->
                     <div class="flex items-center gap-3 mb-1">
                         <svg width="45" height="45" viewBox="0 0 100 100" class="logo-pressed">
                             <defs>
@@ -144,11 +96,9 @@
 
                 <div class="flex flex-col items-end gap-3">
                     <div class="flex gap-3">
-                        <!-- Install Button: Visible only when PWA trigger is ready -->
                         <button id="installBtn" class="hidden p-3 neu-button rounded-xl text-indigo-400 install-pulse" title="Install App">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                         </button>
-                        
                         <button onclick="triggerImport()" class="p-3 neu-button rounded-xl text-gray-400" title="Import Data">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                         </button>
@@ -163,10 +113,7 @@
             <input type="file" id="importFile" class="hidden" accept=".json" onchange="handleImport(event)">
         </header>
 
-        <!-- Main Content -->
         <main class="flex-grow p-6 pt-2 space-y-6 overflow-y-auto no-scrollbar">
-            
-            <!-- Dashboard Stats Summary -->
             <section id="dashboard-stats" class="space-y-6">
                 <div class="grid grid-cols-2 gap-6">
                     <div class="neu-flat p-5 rounded-3xl text-center border-t border-white/5">
@@ -179,65 +126,59 @@
                     </div>
                 </div>
             </section>
-
             <div id="contentArea"></div>
         </main>
 
-        <!-- Navigation Bar -->
         <nav class="fixed bottom-0 left-0 right-0 bg-[#1e1f23] flex justify-around items-center p-5 safe-bottom z-20">
             <button onclick="setView('dashboard')" class="nav-btn flex flex-col items-center gap-1 group" id="btn-dashboard">
-                <div class="p-3 rounded-2xl neu-flat group-active:neu-pressed transition-all" id="icon-dashboard">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <div class="p-3 rounded-2xl neu-flat transition-all" id="icon-dashboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                 </div>
             </button>
             <button onclick="setView('entry')" class="nav-btn flex flex-col items-center gap-1 group" id="btn-entry">
-                <div class="p-3 rounded-2xl neu-flat group-active:neu-pressed transition-all" id="icon-entry">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <div class="p-3 rounded-2xl neu-flat transition-all" id="icon-entry">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 </div>
             </button>
             <button onclick="setView('wishlist')" class="nav-btn flex flex-col items-center gap-1 group" id="btn-wishlist">
-                <div class="p-3 rounded-2xl neu-flat group-active:neu-pressed transition-all" id="icon-wishlist">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                <div class="p-3 rounded-2xl neu-flat transition-all" id="icon-wishlist">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
                 </div>
             </button>
             <button onclick="setView('retirement')" class="nav-btn flex flex-col items-center gap-1 group" id="btn-retirement">
-                <div class="p-3 rounded-2xl neu-flat group-active:neu-pressed transition-all" id="icon-retirement">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                <div class="p-3 rounded-2xl neu-flat transition-all" id="icon-retirement">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
                 </div>
             </button>
         </nav>
     </div>
 
-    <!-- Category Modal -->
     <div id="categoryModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-6 hidden">
         <div class="neu-flat w-full max-w-xs rounded-[2rem] p-8">
             <h3 class="text-lg font-black mb-6 text-gray-100">New Category</h3>
             <input type="text" id="newCategoryName" placeholder="e.g. Dining Out" class="w-full neu-pressed rounded-2xl px-5 py-4 outline-none text-white mb-8">
             <div class="flex gap-4">
                 <button onclick="closeCategoryModal()" class="flex-1 py-4 text-gray-400 font-bold">Cancel</button>
-                <button onclick="confirmAddCategory()" class="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-900/20">Add</button>
+                <button onclick="confirmAddCategory()" class="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black">Add</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast -->
     <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-gray-100 text-black px-8 py-3 rounded-full text-xs font-black shadow-2xl opacity-0 transition-opacity pointer-events-none z-50 uppercase tracking-widest">
         Saved!
     </div>
 
     <script>
-        // State
         let currentView = 'dashboard';
         let dashboardMode = 'monthly';
         let selectedMonth = new Date().toISOString().substring(0, 7);
         let selectedYear = new Date().getFullYear().toString();
-        let deferredPrompt; // For PWA install trigger
-        
-        const RETIREMENT_GOAL = 40000000;
-        const defaultCategories = ["Car Loan", "Credit Card", "Office Travel", "Trip Expenses", "Survival Money", "SIP"];
+        let deferredPrompt; 
         
         let appData = JSON.parse(localStorage.getItem('finance_pro_data')) || {
-            months: {}, wishlist: [], categories: [...defaultCategories], portfolioValue: 0
+            months: {}, wishlist: [], categories: ["Car Loan", "Credit Card", "Office Travel", "Trip Expenses", "Survival Money", "SIP"], 
+            portfolioValue: 0,
+            retirementGoal: 40000000 // Default 4 Cr
         };
 
         const defaultMonthData = () => ({
@@ -251,45 +192,25 @@
             updateStats();
             setView('dashboard');
 
-            // 1. Register a fake service worker via Data URI to meet Chrome's PWA requirements
             if ('serviceWorker' in navigator) {
-                const swCode = `self.addEventListener('fetch', (event) => { event.respondWith(fetch(event.request)); });`;
-                const swBlob = new Blob([swCode], { type: 'application/javascript' });
-                const swUrl = URL.createObjectURL(swBlob);
-                navigator.serviceWorker.register(swUrl).catch(() => {});
+                navigator.serviceWorker.register('sw.js').catch(() => {});
             }
 
-            // 2. Listen for the 'beforeinstallprompt' event
             window.addEventListener('beforeinstallprompt', (e) => {
-                // Prevent Chrome 67 and earlier from automatically showing the prompt
                 e.preventDefault();
-                // Stash the event so it can be triggered later.
                 deferredPrompt = e;
-                // Update UI to show the install button
-                const installBtn = document.getElementById('installBtn');
-                installBtn.classList.remove('hidden');
-                
-                installBtn.addEventListener('click', async () => {
-                    // Show the prompt
+                document.getElementById('installBtn').classList.remove('hidden');
+                document.getElementById('installBtn').onclick = async () => {
                     deferredPrompt.prompt();
-                    // Wait for the user to respond to the prompt
                     const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        installBtn.classList.add('hidden');
-                    }
+                    if (outcome === 'accepted') document.getElementById('installBtn').classList.add('hidden');
                     deferredPrompt = null;
-                });
+                };
             });
-
-            // 3. Hide install button if already installed (standalone mode)
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-                document.getElementById('installBtn').classList.add('hidden');
-            }
         };
 
         function renderSelectorUI() {
-            const selector = document.getElementById('mainSelector');
-            selector.innerHTML = '';
+            const s = document.getElementById('mainSelector'); s.innerHTML = '';
             const now = new Date();
             if (dashboardMode === 'monthly' || currentView !== 'dashboard') {
                 document.getElementById('viewModeLabel').innerText = "TRACK • PLAN • GROW";
@@ -297,49 +218,35 @@
                     const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
                     const val = date.toISOString().substring(0, 7);
                     const opt = document.createElement('option'); opt.value = val; opt.text = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                    if (val === selectedMonth) opt.selected = true; selector.appendChild(opt);
+                    if (val === selectedMonth) opt.selected = true; s.appendChild(opt);
                 }
             } else {
                 document.getElementById('viewModeLabel').innerText = "YEARLY PERFORMANCE";
                 for (let yr = now.getFullYear() - 5; yr <= now.getFullYear() + 2; yr++) {
                     const opt = document.createElement('option'); opt.value = yr.toString(); opt.text = yr.toString();
-                    if (yr.toString() === selectedYear) opt.selected = true; selector.appendChild(opt);
+                    if (yr.toString() === selectedYear) opt.selected = true; s.appendChild(opt);
                 }
             }
         }
 
         function handleSelectorChange() {
-            const val = document.getElementById('mainSelector').value;
-            if (dashboardMode === 'monthly' || currentView !== 'dashboard') {
-                selectedMonth = val; selectedYear = val.split('-')[0];
-            } else {
-                selectedYear = val; selectedMonth = `${val}-01`;
-            }
+            const v = document.getElementById('mainSelector').value;
+            if (dashboardMode === 'monthly' || currentView !== 'dashboard') { selectedMonth = v; selectedYear = v.split('-')[0]; }
+            else { selectedYear = v; selectedMonth = `${v}-01`; }
             updateStats(); renderCurrentView();
         }
 
         function updateStats(skipDownload = true) {
-            let data = (dashboardMode === 'yearly' && currentView === 'dashboard') 
-                ? getYearlyAggregatedData(selectedYear) : (appData.months[selectedMonth] || defaultMonthData());
-
+            let data = (dashboardMode === 'yearly' && currentView === 'dashboard') ? getYearlyAggregatedData(selectedYear) : (appData.months[selectedMonth] || defaultMonthData());
             const inc = (data.income.salary || 0) + (data.income.credits || 0);
             let exp = 0, sip = 0;
-            Object.entries(data.expenses || {}).forEach(([k, v]) => {
-                if (k === "SIP") sip += (Number(v) || 0); else exp += (Number(v) || 0);
-            });
-            
+            Object.entries(data.expenses || {}).forEach(([k, v]) => { if (k === "SIP") sip += (Number(v) || 0); else exp += (Number(v) || 0); });
             let wish = 0;
-            if (dashboardMode === 'yearly' && currentView === 'dashboard') {
-                wish = appData.wishlist.filter(i => i.purchased && i.purchasedMonth.startsWith(selectedYear)).reduce((s, i) => s + i.cost, 0);
-            } else {
-                wish = appData.wishlist.filter(i => i.purchased && i.purchasedMonth === selectedMonth).reduce((s, i) => s + i.cost, 0);
-            }
-
+            if (dashboardMode === 'yearly' && currentView === 'dashboard') { wish = appData.wishlist.filter(i => i.purchased && i.purchasedMonth.startsWith(selectedYear)).reduce((s, i) => s + i.cost, 0); }
+            else { wish = appData.wishlist.filter(i => i.purchased && i.purchasedMonth === selectedMonth).reduce((s, i) => s + i.cost, 0); }
             document.getElementById('statSaved').innerText = `₹${(inc - exp - sip - wish).toLocaleString()}`;
             document.getElementById('statInvested').innerText = `₹${sip.toLocaleString()}`;
-            
             localStorage.setItem('finance_pro_data', JSON.stringify(appData));
-            
             if (!skipDownload) autoDownloadData();
         }
 
@@ -359,43 +266,36 @@
             currentView = v; if (v !== 'dashboard') dashboardMode = 'monthly';
             const stats = document.getElementById('dashboard-stats');
             v === 'retirement' ? stats.classList.add('hidden') : stats.classList.remove('hidden');
-            
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 const inner = btn.querySelector('div');
-                if (btn.id === `btn-${v}`) {
-                    inner.className = 'p-3 rounded-2xl neu-pressed transition-all';
-                    inner.querySelector('svg').className = 'text-indigo-400';
-                } else {
-                    inner.className = 'p-3 rounded-2xl neu-flat transition-all';
-                    inner.querySelector('svg').className = 'text-gray-500';
-                }
+                if (btn.id === `btn-${v}`) { inner.className = 'p-3 rounded-2xl neu-pressed transition-all'; inner.querySelector('svg').className = 'text-indigo-400'; }
+                else { inner.className = 'p-3 rounded-2xl neu-flat transition-all'; inner.querySelector('svg').className = 'text-gray-500'; }
             });
             renderSelectorUI(); updateStats(); renderCurrentView();
         }
 
-        function toggleDashboardMode(m) { dashboardMode = m; renderSelectorUI(); updateStats(); renderCurrentView(); }
-
         function renderCurrentView() {
-            const container = document.getElementById('contentArea');
-            const data = (dashboardMode === 'yearly' && currentView === 'dashboard') 
-                ? getYearlyAggregatedData(selectedYear) : (appData.months[selectedMonth] || defaultMonthData());
-            if (currentView === 'dashboard') renderDashboardSummary(container, data);
-            else if (currentView === 'entry') renderEntryForm(container, data);
-            else if (currentView === 'wishlist') renderWishlistView(container);
-            else if (currentView === 'retirement') renderRetirementView(container);
+            const c = document.getElementById('contentArea');
+            const d = (dashboardMode === 'yearly' && currentView === 'dashboard') ? getYearlyAggregatedData(selectedYear) : (appData.months[selectedMonth] || defaultMonthData());
+            if (currentView === 'dashboard') renderDashboardSummary(c, d);
+            else if (currentView === 'entry') renderEntryForm(c, d);
+            else if (currentView === 'wishlist') renderWishlistView(c);
+            else if (currentView === 'retirement') renderRetirementView(c);
         }
 
         function renderDashboardSummary(container, data) {
             container.innerHTML = `<div class="space-y-8 animate-in fade-in duration-500">
                 <div class="neu-pressed p-1.5 rounded-2xl flex gap-1">
-                    <button onclick="toggleDashboardMode('monthly')" class="flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${dashboardMode === 'monthly' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/30' : 'text-gray-500'}">MONTHLY</button>
-                    <button onclick="toggleDashboardMode('yearly')" class="flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${dashboardMode === 'yearly' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/30' : 'text-gray-500'}">YEARLY</button>
+                    <button onclick="toggleDashboardMode('monthly')" class="flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${dashboardMode === 'monthly' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500'}">MONTHLY</button>
+                    <button onclick="toggleDashboardMode('yearly')" class="flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${dashboardMode === 'yearly' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500'}">YEARLY</button>
                 </div>
                 <div class="neu-flat rounded-[2rem] p-8 text-center border-t border-white/5"><h3 class="text-[10px] font-bold text-gray-500 mb-8 uppercase tracking-widest">Expense Distribution</h3><div class="h-64 flex justify-center"><canvas id="expensePieChart"></canvas></div></div>
                 <div class="neu-flat rounded-[2rem] p-8 text-center border-t border-white/5"><h3 class="text-[10px] font-bold text-gray-500 mb-8 uppercase tracking-widest">Cashflow Trends</h3><div class="h-64 flex justify-center"><canvas id="cashflowBarChart"></canvas></div></div>
             </div>`;
             initCharts(data);
         }
+
+        function toggleDashboardMode(m) { dashboardMode = m; renderSelectorUI(); updateStats(); renderCurrentView(); }
 
         function initCharts(data) {
             const ctxPie = document.getElementById('expensePieChart'), ctxBar = document.getElementById('cashflowBarChart');
@@ -412,38 +312,58 @@
             container.innerHTML = `<div class="space-y-8 animate-in slide-in-from-bottom duration-500">
                 <div class="neu-flat rounded-[2rem] p-8 border-t border-white/5"><h3 class="text-indigo-400 text-sm font-black mb-8 uppercase tracking-widest">Income</h3><div class="space-y-6">
                     <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Salary</label><input type="number" id="inp-salary" value="${data.income.salary || ''}" class="w-full text-xl font-bold neu-pressed rounded-2xl px-5 py-4 outline-none text-white"></div>
-                    <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Other Credits</label><input type="number" id="inp-credits" value="${data.income.credits || ''}" class="w-full text-xl font-bold neu-pressed rounded-2xl px-5 py-4 outline-none text-white"></div>
+                    <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Credits</label><input type="number" id="inp-credits" value="${data.income.credits || ''}" class="w-full text-xl font-bold neu-pressed rounded-2xl px-5 py-4 outline-none text-white"></div>
                 </div></div>
                 <div class="neu-flat rounded-[2rem] p-8 border-t border-white/5">
-                    <div class="flex justify-between items-center mb-8"><h3 class="text-red-400 text-sm font-black uppercase tracking-widest">Expenses</h3><button onclick="openCategoryModal()" class="text-[9px] neu-flat text-indigo-400 px-4 py-2 rounded-xl font-black uppercase tracking-tighter active:neu-pressed">+ Add Field</button></div>
+                    <div class="flex justify-between items-center mb-8"><h3 class="text-red-400 text-sm font-black uppercase tracking-widest">Expenses</h3><button onclick="openCategoryModal()" class="text-[9px] neu-flat text-indigo-400 px-4 py-2 rounded-xl font-black uppercase">+ Add Field</button></div>
                     <div class="grid grid-cols-1 gap-6">
                         ${appData.categories.map(cat => `
                             <div class="flex items-center gap-4 group">
                                 <div class="flex-grow">
-                                    <label class="text-[10px] font-bold text-gray-500 uppercase truncate block mb-1 tracking-widest">${cat}</label>
+                                    <label class="text-[10px] font-bold text-gray-500 uppercase truncate block tracking-widest">${cat}</label>
                                     <input type="number" data-category="${cat}" value="${data.expenses[cat] || ''}" class="expense-input w-full neu-pressed rounded-xl px-4 py-3 outline-none text-gray-200">
                                 </div>
-                                ${cat !== 'SIP' ? `<button onclick="removeCategory('${cat}')" class="mt-5 p-2 text-gray-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path></svg></button>` : ''}
+                                ${cat !== 'SIP' ? `<button onclick="removeCategory('${cat}')" class="mt-5 p-2 text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg></button>` : ''}
                             </div>
                         `).join('')}
                     </div>
                 </div>
-                <button onclick="saveData()" class="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black uppercase tracking-widest shadow-xl shadow-indigo-900/30 active:scale-95 transition-transform">Save Logs</button>
+                <button onclick="saveData()" class="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black shadow-lg">Save Logs</button>
             </div>`;
         }
 
         function renderWishlistView(container) {
             container.innerHTML = `<div class="space-y-8 animate-in slide-in-from-bottom duration-500">
-                <div class="neu-flat rounded-3xl p-6 border-l-4 border-amber-500 border-t border-white/5"><div class="flex gap-3"><input type="text" id="wish-name" placeholder="Item name..." class="flex-grow neu-pressed rounded-xl px-4 py-3 outline-none text-white text-sm"><input type="number" id="wish-cost" placeholder="₹" class="w-24 neu-pressed rounded-xl px-4 py-3 outline-none text-white text-sm"><button onclick="addWishlistItem()" class="bg-indigo-600 text-white p-3 rounded-xl font-bold">+</button></div></div>
-                <div class="space-y-5">${appData.wishlist.map((item, idx) => `<div class="neu-flat p-6 rounded-[2rem] border-t border-white/5 flex items-center justify-between group transition-all ${item.purchased ? 'opacity-40' : ''}"><div class="flex items-center gap-5"><input type="checkbox" ${item.purchased ? 'checked' : ''} onchange="toggleWishItem(${idx})"><div class=""><span class="block font-bold text-gray-100 ${item.purchased ? 'line-through text-gray-500' : ''}">${item.name}</span><span class="text-xs font-bold text-indigo-400">₹${item.cost.toLocaleString()}</span></div></div><button onclick="deleteWishItem(${idx})" class="text-red-500 p-2 font-black text-[9px] uppercase tracking-tighter">Delete</button></div>`).join('')}</div>
+                <div class="neu-flat rounded-3xl p-6 border-l-4 border-amber-500 border-t border-white/5"><div class="flex gap-3"><input type="text" id="wish-name" placeholder="Item..." class="flex-grow neu-pressed rounded-xl px-4 py-3 outline-none text-white text-sm"><input type="number" id="wish-cost" placeholder="₹" class="w-24 neu-pressed rounded-xl px-4 py-3 outline-none text-white text-sm"><button onclick="addWishlistItem()" class="bg-indigo-600 text-white p-3 rounded-xl font-bold">+</button></div></div>
+                <div class="space-y-5">${appData.wishlist.map((item, idx) => `<div class="neu-flat p-6 rounded-[2rem] flex items-center justify-between group transition-all ${item.purchased ? 'opacity-40' : ''}"><div class="flex items-center gap-5"><input type="checkbox" ${item.purchased ? 'checked' : ''} onchange="toggleWishItem(${idx})"><div class=""><span class="block font-bold text-gray-100 ${item.purchased ? 'line-through text-gray-500' : ''}">${item.name}</span><span class="text-xs font-bold text-indigo-400">₹${item.cost.toLocaleString()}</span></div></div><button onclick="deleteWishItem(${idx})" class="text-red-500 p-2 font-black text-[9px] uppercase">Delete</button></div>`).join('')}</div>
             </div>`;
         }
 
         function renderRetirementView(container) {
-            const prog = (appData.portfolioValue / RETIREMENT_GOAL) * 100;
+            const prog = (appData.portfolioValue / appData.retirementGoal) * 100;
+            const remaining = Math.max(0, appData.retirementGoal - appData.portfolioValue);
             container.innerHTML = `<div class="space-y-8 animate-in slide-in-from-bottom duration-500">
-                <div class="neu-flat rounded-[2.5rem] p-10 text-center border-t border-white/5"><h3 class="text-[10px] font-black text-gray-500 mb-4 uppercase tracking-[0.2em]">Retirement Target</h3><p class="text-4xl font-black text-indigo-400">₹4Cr</p><div class="mt-12 neu-pressed h-6 rounded-full overflow-hidden relative"><div class="progress-fill h-full bg-gradient-to-r from-indigo-600 to-indigo-400" style="width: ${Math.min(100, prog)}%"></div></div><p class="text-right text-[10px] font-black text-indigo-500 mt-4 tracking-widest">${prog.toFixed(2)}% ACHIEVED</p></div>
-                <div class="neu-flat rounded-[2.5rem] p-10 border-t border-white/5"><label class="text-[10px] font-black text-gray-500 uppercase mb-4 block text-center tracking-widest">Update Portfolio</label><div class="flex flex-col gap-6"><input type="number" id="inp-portfolio" value="${appData.portfolioValue || ''}" class="w-full text-2xl font-black neu-pressed rounded-2xl py-5 outline-none text-center text-white"><button onclick="updatePortfolio()" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black shadow-lg uppercase tracking-widest">Confirm Update</button></div></div>
+                <div class="neu-flat rounded-[2.5rem] p-10 text-center border-t border-white/5">
+                    <h3 class="text-[10px] font-black text-gray-500 mb-4 uppercase tracking-[0.2em]">Retirement Target</h3>
+                    <p class="text-4xl font-black text-indigo-400">₹${(appData.retirementGoal/10000000).toFixed(1)}Cr</p>
+                    <div class="mt-12 neu-pressed h-6 rounded-full overflow-hidden relative">
+                        <div class="progress-fill h-full bg-gradient-to-r from-indigo-600 to-indigo-400" style="width: ${Math.min(100, prog)}%"></div>
+                    </div>
+                    <p class="text-right text-[10px] font-black text-indigo-500 mt-4 tracking-widest">${prog.toFixed(2)}% ACHIEVED</p>
+                    <p class="text-center text-[10px] text-gray-500 mt-2">Remaining: ₹${remaining.toLocaleString()}</p>
+                </div>
+                
+                <div class="neu-flat rounded-[2.5rem] p-8 border-t border-white/5 space-y-8">
+                    <div>
+                        <label class="text-[10px] font-black text-gray-500 uppercase mb-4 block text-center tracking-widest">Update Portfolio Value</label>
+                        <input type="number" id="inp-portfolio" value="${appData.portfolioValue || ''}" class="w-full text-2xl font-black neu-pressed rounded-2xl py-5 outline-none text-center text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-gray-500 uppercase mb-4 block text-center tracking-widest">Set Retirement Goal (Target)</label>
+                        <input type="number" id="inp-goal" value="${appData.retirementGoal || ''}" class="w-full text-2xl font-black neu-pressed rounded-2xl py-5 outline-none text-center text-white">
+                    </div>
+                    <button onclick="updateRetirement()" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black shadow-lg uppercase tracking-widest">Update All</button>
+                </div>
             </div>`;
         }
 
@@ -458,7 +378,7 @@
 
         function exportData() {
             const s = JSON.stringify(appData, null, 2), b = new Blob([s], { type: 'application/json' }), u = URL.createObjectURL(b), a = document.createElement('a');
-            a.href = u; a.download = `hisabkitab_backup_${new Date().toISOString().split('T')[0]}.json`; a.click(); showToast("Manual Backup Created");
+            a.href = u; a.download = `hisabkitab_backup_${new Date().toISOString().split('T')[0]}.json`; a.click(); showToast("Backup Created");
         }
 
         function autoDownloadData() {
@@ -478,7 +398,14 @@
             }; r.readAsText(f);
         }
 
-        function updatePortfolio() { appData.portfolioValue = Number(document.getElementById('inp-portfolio').value) || 0; localStorage.setItem('finance_pro_data', JSON.stringify(appData)); renderRetirementView(document.getElementById('contentArea')); showToast("Updated Portfolio"); autoDownloadData(); }
+        function updateRetirement() { 
+            appData.portfolioValue = Number(document.getElementById('inp-portfolio').value) || 0; 
+            appData.retirementGoal = Number(document.getElementById('inp-goal').value) || 40000000;
+            localStorage.setItem('finance_pro_data', JSON.stringify(appData)); 
+            renderRetirementView(document.getElementById('contentArea')); 
+            showToast("Stats Updated"); autoDownloadData(); 
+        }
+
         function openCategoryModal() { document.getElementById('categoryModal').classList.remove('hidden'); document.getElementById('newCategoryName').focus(); }
         function closeCategoryModal() { document.getElementById('categoryModal').classList.add('hidden'); document.getElementById('newCategoryName').value = ''; }
         function confirmAddCategory() {
@@ -486,7 +413,7 @@
             if (n && !appData.categories.includes(n)) { appData.categories.push(n); Object.values(appData.months).forEach(m => m.expenses[n] = 0); renderCurrentView(); closeCategoryModal(); updateStats(false); }
         }
         function removeCategory(c) {
-            if (confirm(`Delete "${c}"? Data will be lost across all months.`)) { appData.categories = appData.categories.filter(x => x !== c); Object.values(appData.months).forEach(m => delete m.expenses[c]); renderCurrentView(); updateStats(false); }
+            if (confirm(`Delete "${c}"? Data will be lost.`)) { appData.categories = appData.categories.filter(x => x !== c); Object.values(appData.months).forEach(m => delete m.expenses[c]); renderCurrentView(); updateStats(false); }
         }
         function addWishlistItem() {
             const n = document.getElementById('wish-name').value, c = Number(document.getElementById('wish-cost').value);
