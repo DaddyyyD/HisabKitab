@@ -76,8 +76,8 @@
                 <path d="M30 30 V70 M30 50 H50 M50 30 V70" stroke="#6366f1" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.8"/>
                 <path d="M60 30 V70 M60 50 L75 30 M60 50 L75 70" stroke="#10b981" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.8"/>
             </svg>
-            <h2 id="auth-title" class="text-2xl font-black text-white">HisabKitab</h2>
-            <p id="auth-desc" class="text-xs text-gray-500 font-bold uppercase tracking-widest mt-2">Enter Passcode</p>
+            <h2 id="auth-title" class="text-2xl font-black text-white text-center">HisabKitab</h2>
+            <p id="auth-desc" class="text-xs text-gray-500 font-bold uppercase tracking-widest mt-2 text-center">Enter Passcode</p>
         </div>
 
         <div class="flex gap-4 mb-12" id="dot-container">
@@ -88,7 +88,6 @@
         </div>
 
         <div class="grid grid-cols-3 gap-6 w-full max-w-xs">
-            <!-- Keypad -->
             <button onclick="inputPin(1)" class="neu-button aspect-square rounded-2xl text-xl font-bold">1</button>
             <button onclick="inputPin(2)" class="neu-button aspect-square rounded-2xl text-xl font-bold">2</button>
             <button onclick="inputPin(3)" class="neu-button aspect-square rounded-2xl text-xl font-bold">3</button>
@@ -100,7 +99,7 @@
             <button onclick="inputPin(9)" class="neu-button aspect-square rounded-2xl text-xl font-bold">9</button>
             <div class="aspect-square"></div>
             <button onclick="inputPin(0)" class="neu-button aspect-square rounded-2xl text-xl font-bold">0</button>
-            <button onclick="clearPin()" class="neu-button aspect-square rounded-2xl text-xs font-bold text-red-400">DEL</button>
+            <button onclick="clearPin()" class="neu-button aspect-square rounded-2xl text-xs font-bold text-red-400 uppercase tracking-tighter">DEL</button>
         </div>
     </div>
 
@@ -180,24 +179,36 @@
         </div>
     </div>
 
-    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-white text-black px-8 py-3 rounded-full text-[10px] font-black shadow-2xl opacity-0 transition-opacity pointer-events-none z-[2000] uppercase tracking-widest">
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-white text-black px-8 py-3 rounded-full text-[10px] font-black shadow-2xl opacity-0 transition-opacity pointer-events-none z-[2000] uppercase tracking-widest text-center">
         Saved!
     </div>
 
     <script>
-        // State and Auth Management
-        let appData = JSON.parse(localStorage.getItem('finance_pro_data')) || {
-            months: {}, wishlist: [], categories: ["Car Loan", "Credit Card", "Office Travel", "Trip Expenses", "Survival Money", "SIP"], 
-            portfolioValue: 0, retirementGoal: 40000000, passcode: null
-        };
+        // --- DATA INITIALIZATION & MIGRATION ---
+        let rawStored = localStorage.getItem('finance_pro_data');
+        let appData;
         
-        let currentView = 'dashboard';
-        let dashboardMode = 'monthly';
-        let selectedMonth = new Date().toISOString().substring(0, 7);
-        let selectedYear = new Date().getFullYear().toString();
-        let currentPinInput = "";
+        try {
+            let parsed = rawStored ? JSON.parse(rawStored) : {};
+            // Migration: Ensure all keys exist to prevent crashes
+            appData = {
+                months: parsed.months || {},
+                wishlist: parsed.wishlist || [],
+                categories: parsed.categories || ["Car Loan", "Credit Card", "Office Travel", "Trip Expenses", "Survival Money", "SIP"],
+                portfolioValue: parsed.portfolioValue || 0,
+                retirementGoal: parsed.retirementGoal || 40000000,
+                passcode: parsed.passcode || null
+            };
+        } catch (e) {
+            // Fallback for corrupted data
+            appData = {
+                months: {}, wishlist: [], categories: ["Car Loan", "Credit Card", "Office Travel", "Trip Expenses", "Survival Money", "SIP"], 
+                portfolioValue: 0, retirementGoal: 40000000, passcode: null
+            };
+        }
 
-        // PIN Logic
+        // --- AUTH LOGIC ---
+        let currentPinInput = "";
         function inputPin(num) {
             if (currentPinInput.length < 4) {
                 currentPinInput += num;
@@ -223,52 +234,62 @@
 
         function validateAuth() {
             if (!appData.passcode) {
-                // Registration
-                appData.passcode = btoa(currentPinInput); // Simple obfuscation for storage
+                // Registration Mode
+                appData.passcode = btoa(currentPinInput);
                 localStorage.setItem('finance_pro_data', JSON.stringify(appData));
                 unlockApp();
-                showToast("Passcode Registered");
+                showToast("Passcode Set");
             } else {
-                // Verification
+                // Verification Mode
                 if (btoa(currentPinInput) === appData.passcode) {
                     unlockApp();
                 } else {
-                    clearPin();
+                    currentPinInput = "";
+                    updatePinDots();
                     showToast("Wrong Passcode");
                 }
             }
         }
 
         function unlockApp() {
-            document.getElementById('auth-overlay').classList.add('hidden');
+            document.getElementById('auth-overlay').style.display = 'none';
             document.getElementById('main-app').classList.remove('hidden');
             document.body.style.overflow = 'auto';
             initApp();
         }
+
+        // --- APP STATE ---
+        let currentView = 'dashboard';
+        let dashboardMode = 'monthly';
+        let selectedMonth = new Date().toISOString().substring(0, 7);
+        let selectedYear = new Date().getFullYear().toString();
 
         function initApp() {
             Chart.defaults.color = '#94a3b8';
             renderSelectorUI();
             updateStats();
             setView('dashboard');
-            if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            }
         }
 
         window.onload = () => {
             if (!appData.passcode) {
-                document.getElementById('auth-title').innerText = "Welcome";
+                document.getElementById('auth-title').innerText = "Register";
                 document.getElementById('auth-desc').innerText = "Set a 4-Digit Passcode";
             }
         };
 
-        // App Core Logic
         const defaultMonthData = () => ({
             income: { salary: 0, credits: 0 },
             expenses: Object.fromEntries(appData.categories.map(c => [c, 0]))
         });
 
         function renderSelectorUI() {
-            const s = document.getElementById('mainSelector'); s.innerHTML = '';
+            const s = document.getElementById('mainSelector'); 
+            if (!s) return;
+            s.innerHTML = '';
             const now = new Date();
             if (dashboardMode === 'monthly' || currentView !== 'dashboard') {
                 document.getElementById('viewModeLabel').innerText = "TRACK • PLAN • GROW";
@@ -299,9 +320,17 @@
             const inc = (data.income.salary || 0) + (data.income.credits || 0);
             let exp = 0, sip = 0;
             Object.entries(data.expenses || {}).forEach(([k, v]) => { if (k === "SIP") sip += (Number(v) || 0); else exp += (Number(v) || 0); });
+            
             let wish = 0;
-            if (dashboardMode === 'yearly' && currentView === 'dashboard') { wish = appData.wishlist.filter(i => i.purchased && i.purchasedMonth.startsWith(selectedYear)).reduce((s, i) => s + i.cost, 0); }
-            else { wish = appData.wishlist.filter(i => i.purchased && i.purchasedMonth === selectedMonth).reduce((s, i) => s + i.cost, 0); }
+            if (appData.wishlist) {
+                if (dashboardMode === 'yearly' && currentView === 'dashboard') { 
+                    wish = appData.wishlist.filter(i => i.purchased && i.purchasedMonth && i.purchasedMonth.startsWith(selectedYear)).reduce((s, i) => s + (i.cost || 0), 0); 
+                }
+                else { 
+                    wish = appData.wishlist.filter(i => i.purchased && i.purchasedMonth === selectedMonth).reduce((s, i) => s + (i.cost || 0), 0); 
+                }
+            }
+
             document.getElementById('statSaved').innerText = `₹${(inc - exp - sip - wish).toLocaleString()}`;
             document.getElementById('statInvested').innerText = `₹${sip.toLocaleString()}`;
             localStorage.setItem('finance_pro_data', JSON.stringify(appData));
@@ -333,6 +362,7 @@
 
         function renderCurrentView() {
             const c = document.getElementById('contentArea');
+            if (!c) return;
             const d = (dashboardMode === 'yearly' && currentView === 'dashboard') ? getYearlyAggregatedData(selectedYear) : (appData.months[selectedMonth] || defaultMonthData());
             if (currentView === 'dashboard') renderDashboardSummary(c, d);
             else if (currentView === 'entry') renderEntryForm(c, d);
@@ -358,10 +388,10 @@
             const ctxPie = document.getElementById('expensePieChart'), ctxBar = document.getElementById('cashflowBarChart');
             if (!ctxPie || !ctxBar) return;
             const labels = [], values = [];
-            Object.entries(data.expenses).forEach(([k, v]) => { if (v > 0) { labels.push(k); values.push(v); } });
+            Object.entries(data.expenses || {}).forEach(([k, v]) => { if (v > 0) { labels.push(k); values.push(v); } });
             new Chart(ctxPie, { type: 'doughnut', data: { labels, datasets: [{ data: values, backgroundColor: ['#6366f1', '#f43f5e', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, usePointStyle: true, font: { size: 9, weight: 'bold' } } } }, cutout: '78%' } });
             const inc = (data.income.salary || 0) + (data.income.credits || 0);
-            let exp = 0, sip = 0; Object.entries(data.expenses).forEach(([k,v]) => { if (k === "SIP") sip += v; else exp += v; });
+            let exp = 0, sip = 0; Object.entries(data.expenses || {}).forEach(([k,v]) => { if (k === "SIP") sip += v; else exp += v; });
             new Chart(ctxBar, { type: 'bar', data: { labels: ['Income', 'Expenses', 'SIP'], datasets: [{ data: [inc, exp, sip], backgroundColor: ['#10b981', '#f43f5e', '#3b82f6'], borderRadius: 12, barThickness: 24 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#27282d' }, ticks: { font: { size: 9 }, callback: v => '₹' + (v >= 100000 ? (v/100000).toFixed(1) + 'L' : v) } }, x: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } } }, plugins: { legend: { display: false } } } });
         }
 
@@ -392,7 +422,7 @@
         function renderWishlistView(container) {
             container.innerHTML = `<div class="space-y-8 animate-in slide-in-from-bottom duration-500">
                 <div class="neu-flat rounded-3xl p-6 border-l-4 border-amber-500 border-t border-white/5"><div class="flex gap-3"><input type="text" id="wish-name" placeholder="Item..." class="flex-grow neu-pressed rounded-xl px-4 py-3 outline-none text-white text-sm"><input type="number" id="wish-cost" placeholder="₹" class="w-24 neu-pressed rounded-xl px-4 py-3 outline-none text-white text-sm"><button onclick="addWishlistItem()" class="bg-indigo-600 text-white p-3 rounded-xl font-bold">+</button></div></div>
-                <div class="space-y-5">${appData.wishlist.map((item, idx) => `<div class="neu-flat p-6 rounded-[2rem] border-t border-white/5 flex items-center justify-between group transition-all ${item.purchased ? 'opacity-40' : ''}"><div class="flex items-center gap-5"><input type="checkbox" ${item.purchased ? 'checked' : ''} onchange="toggleWishItem(${idx})"><div class=""><span class="block font-bold text-gray-100 ${item.purchased ? 'line-through text-gray-500' : ''}">${item.name}</span><span class="text-xs font-bold text-indigo-400">₹${item.cost.toLocaleString()}</span></div></div><button onclick="deleteWishItem(${idx})" class="text-red-500 p-2 font-black text-[9px] uppercase">Delete</button></div>`).join('')}</div>
+                <div class="space-y-5">${appData.wishlist.map((item, idx) => `<div class="neu-flat p-6 rounded-[2rem] border-t border-white/5 flex items-center justify-between group transition-all ${item.purchased ? 'opacity-40' : ''}"><div class="flex items-center gap-5"><input type="checkbox" ${item.purchased ? 'checked' : ''} onchange="toggleWishItem(${idx})"><div class=""><span class="block font-bold text-gray-100 ${item.purchased ? 'line-through text-gray-500' : ''}">${item.name}</span><span class="text-xs font-bold text-indigo-400">₹${(item.cost || 0).toLocaleString()}</span></div></div><button onclick="deleteWishItem(${idx})" class="text-red-500 p-2 font-black text-[9px] uppercase">Delete</button></div>`).join('')}</div>
             </div>`;
         }
 
@@ -430,7 +460,8 @@
             m.income.salary = Number(document.getElementById('inp-salary').value);
             m.income.credits = Number(document.getElementById('inp-credits').value);
             document.querySelectorAll('.expense-input').forEach(i => m.expenses[i.getAttribute('data-category')] = Number(i.value) || 0);
-            showToast("Account Data Saved"); updateStats(false);
+            showToast("Account Data Saved"); 
+            updateStats(false);
         }
 
         function updateRetirement() { 
@@ -438,18 +469,25 @@
             appData.retirementGoal = Number(document.getElementById('inp-goal').value) || 40000000;
             localStorage.setItem('finance_pro_data', JSON.stringify(appData)); 
             renderRetirementView(document.getElementById('contentArea')); 
-            showToast("Stats Synchronized"); autoSyncFile(); 
+            showToast("Stats Synchronized"); 
+            autoSyncFile(); 
         }
 
         function autoSyncFile() {
-            // This triggers a 'Download' action which App Mint usually handles as a 'Save to Storage' action.
-            const s = JSON.stringify(appData), b = new Blob([s], { type: 'application/json' }), u = URL.createObjectURL(b), a = document.createElement('a');
-            a.href = u; a.download = `hisabkitab_data.json`; a.click();
+            try {
+                const s = JSON.stringify(appData), b = new Blob([s], { type: 'application/json' }), u = URL.createObjectURL(b), a = document.createElement('a');
+                a.href = u; a.style.display = 'none'; a.download = `hisabkitab_data.json`;
+                document.body.appendChild(a); a.click();
+                setTimeout(() => document.body.removeChild(a), 100);
+            } catch (e) {}
         }
 
         function exportData() {
             const s = JSON.stringify(appData, null, 2), b = new Blob([s], { type: 'application/json' }), u = URL.createObjectURL(b), a = document.createElement('a');
-            a.href = u; a.download = `HK_Backup_${new Date().toISOString().split('T')[0]}.json`; a.click(); showToast("Manual Backup Created");
+            a.href = u; a.style.display = 'none'; a.download = `HK_Backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a); a.click();
+            setTimeout(() => document.body.removeChild(a), 100);
+            showToast("Manual Backup Created");
         }
 
         function triggerImport() { document.getElementById('importFile').click(); }
@@ -482,7 +520,7 @@
             renderWishlistView(document.getElementById('contentArea')); updateStats(false);
         }
         function deleteWishItem(i) { appData.wishlist.splice(i, 1); renderWishlistView(document.getElementById('contentArea')); updateStats(false); }
-        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.remove('opacity-0'); setTimeout(() => t.classList.add('opacity-0'), 2000); }
+        function showToast(m) { const t = document.getElementById('toast'); if (!t) return; t.innerText = m; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2000); }
     </script>
 </body>
 </html>
