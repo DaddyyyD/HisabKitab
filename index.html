@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HisabKitab - Dark Neumorphic Finance</title>
+    
+    <!-- PWA / Mobile App Capabilities -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HisabKitab">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1e1f23">
+    
+    <!-- Web App Manifest (Data URI) -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"HisabKitab","short_name":"HK","start_url":".","display":"standalone","background_color":"#1e1f23","theme_color":"#1e1f23","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2454/2454291.png","sizes":"512x512","type":"image/png"}]}'>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        
+        :root {
+            --bg: #1e1f23;
+            --card: #1e1f23;
+            --dark-shadow: 6px 6px 12px #151619;
+            --light-shadow: -6px -6px 12px #27282d;
+            --inset-shadow: inset 4px 4px 8px #151619, inset -4px -4px 8px #27282d;
+            --accent: #6366f1;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg); 
+            color: #e2e8f0;
+            -webkit-tap-highlight-color: transparent; 
+            overscroll-behavior-y: contain;
+        }
+
+        /* Neumorphic Shapes */
+        .neu-flat {
+            background: var(--card);
+            box-shadow: var(--dark-shadow), var(--light-shadow);
+        }
+
+        .neu-pressed {
+            background: var(--card);
+            box-shadow: var(--inset-shadow);
+        }
+
+        .neu-button {
+            background: var(--card);
+            box-shadow: var(--dark-shadow), var(--light-shadow);
+            transition: all 0.2s ease;
+        }
+
+        .neu-button:active {
+            box-shadow: var(--inset-shadow);
+            transform: scale(0.98);
+        }
+
+        .neu-input {
+            background: var(--card);
+            box-shadow: var(--inset-shadow);
+            border: none;
+            outline: none;
+        }
+
+        /* Nav & Overlays */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .safe-bottom { padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
+        
+        /* Custom Checkbox */
+        input[type="checkbox"] {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: var(--card);
+            box-shadow: var(--dark-shadow), var(--light-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        input[type="checkbox"]:checked {
+            box-shadow: var(--inset-shadow);
+        }
+        input[type="checkbox"]:checked::after {
+            content: '✓';
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .progress-fill { transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        #categoryModal.hidden { opacity: 0; pointer-events: none; display: none; }
+
+        /* Pressed Logo Effect */
+        .logo-pressed {
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)) drop-shadow(-1px -1px 1px rgba(255,255,255,0.05));
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col pb-24">
+        
+        <!-- Header with Cool HK Logo -->
+        <header class="p-6 pb-2 sticky top-0 bg-[#1e1f23] z-10">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex flex-col">
+                    <!-- Custom Neumorphic Logo -->
+                    <div class="flex items-center gap-3 mb-1">
+                        <svg width="45" height="45" viewBox="0 0 100 100" class="logo-pressed">
+                            <defs>
+                                <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"></feGaussianBlur>
+                                    <feOffset dx="3" dy="3"></feOffset>
+                                    <feComposite in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowDiff"></feComposite>
+                                    <feFlood flood-color="#121214" flood-opacity="1"></feFlood>
+                                    <feComposite in2="shadowDiff" operator="in"></feComposite>
+                                    <feComposite in2="SourceGraphic" operator="over"></feComposite>
+                                </filter>
+                            </defs>
+                            <rect x="5" y="5" width="90" height="90" rx="20" fill="#1e1f23" />
+                            <!-- H Path -->
+                            <path d="M30 30 V70 M30 50 H50 M50 30 V70" stroke="#6366f1" stroke-width="8" stroke-linecap="round" fill="none" filter="url(#innerShadow)" opacity="0.8"/>
+                            <!-- K Path -->
+                            <path d="M60 30 V70 M60 50 L75 30 M60 50 L75 70" stroke="#10b981" stroke-width="8" stroke-linecap="round" fill="none" filter="url(#innerShadow)" opacity="0.8"/>
+                        </svg>
+                        <h1 class="text-2xl font-black text-gray-100 tracking-tight leading-none">HisabKitab</h1>
+                    </div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] ml-1" id="viewModeLabel">TRACK • PLAN • GROW</p>
+                </div>
+
+                <div class="flex flex-col items-end gap-3">
+                    <div class="flex gap-3">
+                        <button onclick="triggerImport()" class="p-3 neu-button rounded-xl text-gray-400" title="Import Data">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        </button>
+                        <button onclick="exportData()" class="p-3 neu-button rounded-xl text-gray-400" title="Manual Backup">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        </button>
+                    </div>
+                    <select id="mainSelector" onchange="handleSelectorChange()" class="neu-pressed text-gray-300 rounded-xl px-4 py-2 text-sm font-bold outline-none min-w-[120px]">
+                    </select>
+                </div>
+            </div>
+            <input type="file" id="importFile" class="hidden" accept=".json" onchange="handleImport(event)">
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow p-6 pt-2 space-y-6 overflow-y-auto no-scrollbar">
+            
+            <!-- Dashboard Stats Summary -->
+            <section id="dashboard-stats" class="space-y-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="neu-flat p-5 rounded-3xl text-center border-t border-white/5">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1" id="labelSaved">Total Saved</p>
+                        <p class="text-xl font-black text-green-500" id="statSaved">₹0</p>
+                    </div>
+                    <div class="neu-flat p-5 rounded-3xl text-center border-t border-white/5">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1" id="labelInvested">Invested (SIP)</p>
+                        <p class="text-xl font-black text-indigo-400" id="statInvested">₹0</p>
+                    </div>
+                </div>
+            </section>
+
+            <div id="contentArea"></div>
+        </main>
+
+        <!-- Navigation Bar -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-[#1e1f23] flex justify-around items-center p-5 safe-bottom z-20">
+            <button onclick="setView('dashboard')" class="nav-btn flex flex-col items-center gap-1 group" id="btn-dashboard">
+                <div class="p-3 rounded-2xl neu-flat group-active:neu-pressed transition-all" id="icon-dashboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </div>
+            </button>
+            <button onclick="setView('entry')" class="nav-btn flex flex-col items-center gap-1 group" id="btn-entry">
+                <div class="p-3 rounded-2xl neu-flat group-active:neu-pressed transition-all" id="icon-entry">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </div>
+            </button>
+            <button onclick="setView('wishlist')" class="nav-btn flex flex-col items-center gap-1 group" id="btn-wishlist">
+                <div class="p-3 rounded-2xl neu-flat group-active:neu-pressed transition-all" id="icon-wishlist">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                </div>
+            </button>
+            <button onclick="setView('retirement')" class="nav-btn flex flex-col items-center gap-1 group" id="btn-retirement">
+                <div class="p-3 rounded-2xl neu-flat group-active:neu-pressed transition-all" id="icon-retirement">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                </div>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="categoryModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-6 hidden">
+        <div class="neu-flat w-full max-w-xs rounded-[2rem] p-8">
+            <h3 class="text-lg font-black mb-6 text-gray-100">New Category</h3>
+            <input type="text" id="newCategoryName" placeholder="e.g. Dining Out" class="w-full neu-pressed rounded-2xl px-5 py-4 outline-none text-white mb-8">
+            <div class="flex gap-4">
+                <button onclick="closeCategoryModal()" class="flex-1 py-4 text-gray-400 font-bold">Cancel</button>
+                <button onclick="confirmAddCategory()" class="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-900/20">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-gray-100 text-black px-8 py-3 rounded-full text-xs font-black shadow-2xl opacity-0 transition-opacity pointer-events-none z-50 uppercase tracking-widest">
+        Saved!
+    </div>
+
+    <script>
+        // State
+        let currentView = 'dashboard';
+        let dashboardMode = 'monthly';
+        let selectedMonth = new Date().toISOString().substring(0, 7);
+        let selectedYear = new Date().getFullYear().toString();
+        
+        const RETIREMENT_GOAL = 40000000;
+        const defaultCategories = ["Car Loan", "Credit Card", "Office Travel", "Trip Expenses", "Survival Money", "SIP"];
+        
+        let appData = JSON.parse(localStorage.getItem('finance_pro_data')) || {
+            months: {}, wishlist: [], categories: [...defaultCategories], portfolioValue: 0
+        };
+
+        const defaultMonthData = () => ({
+            income: { salary: 0, credits: 0 },
+            expenses: Object.fromEntries(appData.categories.map(c => [c, 0]))
+        });
+
+        window.onload = () => {
+            Chart.defaults.color = '#94a3b8';
+            renderSelectorUI();
+            updateStats();
+            setView('dashboard');
+
+            // Optional: Register a dummy service worker to satisfy PWA requirements if hosted
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGV2ZW50ID0+IHsgfSk7').catch(() => {});
+            }
+        };
+
+        function renderSelectorUI() {
+            const selector = document.getElementById('mainSelector');
+            selector.innerHTML = '';
+            const now = new Date();
+            if (dashboardMode === 'monthly' || currentView !== 'dashboard') {
+                document.getElementById('viewModeLabel').innerText = "TRACK • PLAN • GROW";
+                for (let i = -24; i <= 12; i++) {
+                    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                    const val = date.toISOString().substring(0, 7);
+                    const opt = document.createElement('option'); opt.value = val; opt.text = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                    if (val === selectedMonth) opt.selected = true; selector.appendChild(opt);
+                }
+            } else {
+                document.getElementById('viewModeLabel').innerText = "YEARLY PERFORMANCE";
+                for (let yr = now.getFullYear() - 5; yr <= now.getFullYear() + 2; yr++) {
+                    const opt = document.createElement('option'); opt.value = yr.toString(); opt.text = yr.toString();
+                    if (yr.toString() === selectedYear) opt.selected = true; selector.appendChild(opt);
+                }
+            }
+        }
+
+        function handleSelectorChange() {
+            const val = document.getElementById('mainSelector').value;
+            if (dashboardMode === 'monthly' || currentView !== 'dashboard') {
+                selectedMonth = val; selectedYear = val.split('-')[0];
+            } else {
+                selectedYear = val; selectedMonth = `${val}-01`;
+            }
+            updateStats(); renderCurrentView();
+        }
+
+        function updateStats(skipDownload = true) {
+            let data = (dashboardMode === 'yearly' && currentView === 'dashboard') 
+                ? getYearlyAggregatedData(selectedYear) : (appData.months[selectedMonth] || defaultMonthData());
+
+            const inc = (data.income.salary || 0) + (data.income.credits || 0);
+            let exp = 0, sip = 0;
+            Object.entries(data.expenses || {}).forEach(([k, v]) => {
+                if (k === "SIP") sip += (Number(v) || 0); else exp += (Number(v) || 0);
+            });
+            
+            let wish = 0;
+            if (dashboardMode === 'yearly' && currentView === 'dashboard') {
+                wish = appData.wishlist.filter(i => i.purchased && i.purchasedMonth.startsWith(selectedYear)).reduce((s, i) => s + i.cost, 0);
+            } else {
+                wish = appData.wishlist.filter(i => i.purchased && i.purchasedMonth === selectedMonth).reduce((s, i) => s + i.cost, 0);
+            }
+
+            document.getElementById('statSaved').innerText = `₹${(inc - exp - sip - wish).toLocaleString()}`;
+            document.getElementById('statInvested').innerText = `₹${sip.toLocaleString()}`;
+            
+            localStorage.setItem('finance_pro_data', JSON.stringify(appData));
+            
+            if (!skipDownload) autoDownloadData();
+        }
+
+        function getYearlyAggregatedData(y) {
+            const agg = defaultMonthData();
+            Object.keys(appData.months).forEach(m => {
+                if (m.startsWith(y)) {
+                    const d = appData.months[m];
+                    agg.income.salary += (d.income.salary || 0); agg.income.credits += (d.income.credits || 0);
+                    Object.keys(d.expenses).forEach(c => agg.expenses[c] = (agg.expenses[c] || 0) + (d.expenses[c] || 0));
+                }
+            });
+            return agg;
+        }
+
+        function setView(v) {
+            currentView = v; if (v !== 'dashboard') dashboardMode = 'monthly';
+            const stats = document.getElementById('dashboard-stats');
+            v === 'retirement' ? stats.classList.add('hidden') : stats.classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const inner = btn.querySelector('div');
+                if (btn.id === `btn-${v}`) {
+                    inner.className = 'p-3 rounded-2xl neu-pressed transition-all';
+                    inner.querySelector('svg').className = 'text-indigo-400';
+                } else {
+                    inner.className = 'p-3 rounded-2xl neu-flat transition-all';
+                    inner.querySelector('svg').className = 'text-gray-500';
+                }
+            });
+            renderSelectorUI(); updateStats(); renderCurrentView();
+        }
+
+        function toggleDashboardMode(m) { dashboardMode = m; renderSelectorUI(); updateStats(); renderCurrentView(); }
+
+        function renderCurrentView() {
+            const container = document.getElementById('contentArea');
+            const data = (dashboardMode === 'yearly' && currentView === 'dashboard') 
+                ? getYearlyAggregatedData(selectedYear) : (appData.months[selectedMonth] || defaultMonthData());
+            if (currentView === 'dashboard') renderDashboardSummary(container, data);
+            else if (currentView === 'entry') renderEntryForm(container, data);
+            else if (currentView === 'wishlist') renderWishlistView(container);
+            else if (currentView === 'retirement') renderRetirementView(container);
+        }
+
+        function renderDashboardSummary(container, data) {
+            container.innerHTML = `<div class="space-y-8 animate-in fade-in duration-500">
+                <div class="neu-pressed p-1.5 rounded-2xl flex gap-1">
+                    <button onclick="toggleDashboardMode('monthly')" class="flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${dashboardMode === 'monthly' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/30' : 'text-gray-500'}">MONTHLY</button>
+                    <button onclick="toggleDashboardMode('yearly')" class="flex-1 py-3 text-[10px] font-black rounded-xl transition-all ${dashboardMode === 'yearly' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/30' : 'text-gray-500'}">YEARLY</button>
+                </div>
+                <div class="neu-flat rounded-[2rem] p-8 text-center border-t border-white/5"><h3 class="text-[10px] font-bold text-gray-500 mb-8 uppercase tracking-widest">Expense Distribution</h3><div class="h-64 flex justify-center"><canvas id="expensePieChart"></canvas></div></div>
+                <div class="neu-flat rounded-[2rem] p-8 text-center border-t border-white/5"><h3 class="text-[10px] font-bold text-gray-500 mb-8 uppercase tracking-widest">Cashflow Trends</h3><div class="h-64 flex justify-center"><canvas id="cashflowBarChart"></canvas></div></div>
+            </div>`;
+            initCharts(data);
+        }
+
+        function initCharts(data) {
+            const ctxPie = document.getElementById('expensePieChart'), ctxBar = document.getElementById('cashflowBarChart');
+            if (!ctxPie || !ctxBar) return;
+            const labels = [], values = [];
+            Object.entries(data.expenses).forEach(([k, v]) => { if (v > 0) { labels.push(k); values.push(v); } });
+            new Chart(ctxPie, { type: 'doughnut', data: { labels, datasets: [{ data: values, backgroundColor: ['#6366f1', '#f43f5e', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, usePointStyle: true, font: { size: 9, weight: 'bold' } } } }, cutout: '78%' } });
+            const inc = (data.income.salary || 0) + (data.income.credits || 0);
+            let exp = 0, sip = 0; Object.entries(data.expenses).forEach(([k,v]) => { if (k === "SIP") sip += v; else exp += v; });
+            new Chart(ctxBar, { type: 'bar', data: { labels: ['Income', 'Expenses', 'SIP'], datasets: [{ data: [inc, exp, sip], backgroundColor: ['#10b981', '#f43f5e', '#3b82f6'], borderRadius: 12, barThickness: 24 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#27282d' }, ticks: { font: { size: 9 }, callback: v => '₹' + (v >= 100000 ? (v/100000).toFixed(1) + 'L' : v) } }, x: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } } }, plugins: { legend: { display: false } } } });
+        }
+
+        function renderEntryForm(container, data) {
+            container.innerHTML = `<div class="space-y-8 animate-in slide-in-from-bottom duration-500">
+                <div class="neu-flat rounded-[2rem] p-8 border-t border-white/5"><h3 class="text-indigo-400 text-sm font-black mb-8 uppercase tracking-widest">Income</h3><div class="space-y-6">
+                    <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Salary</label><input type="number" id="inp-salary" value="${data.income.salary || ''}" class="w-full text-xl font-bold neu-pressed rounded-2xl px-5 py-4 outline-none text-white"></div>
+                    <div><label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Other Credits</label><input type="number" id="inp-credits" value="${data.income.credits || ''}" class="w-full text-xl font-bold neu-pressed rounded-2xl px-5 py-4 outline-none text-white"></div>
+                </div></div>
+                <div class="neu-flat rounded-[2rem] p-8 border-t border-white/5">
+                    <div class="flex justify-between items-center mb-8"><h3 class="text-red-400 text-sm font-black uppercase tracking-widest">Expenses</h3><button onclick="openCategoryModal()" class="text-[9px] neu-flat text-indigo-400 px-4 py-2 rounded-xl font-black uppercase tracking-tighter active:neu-pressed">+ Add Field</button></div>
+                    <div class="grid grid-cols-1 gap-6">
+                        ${appData.categories.map(cat => `
+                            <div class="flex items-center gap-4 group">
+                                <div class="flex-grow">
+                                    <label class="text-[10px] font-bold text-gray-500 uppercase truncate block mb-1 tracking-widest">${cat}</label>
+                                    <input type="number" data-category="${cat}" value="${data.expenses[cat] || ''}" class="expense-input w-full neu-pressed rounded-xl px-4 py-3 outline-none text-gray-200">
+                                </div>
+                                ${cat !== 'SIP' ? `<button onclick="removeCategory('${cat}')" class="mt-5 p-2 text-gray-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path></svg></button>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <button onclick="saveData()" class="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black uppercase tracking-widest shadow-xl shadow-indigo-900/30 active:scale-95 transition-transform">Save Logs</button>
+            </div>`;
+        }
+
+        function renderWishlistView(container) {
+            container.innerHTML = `<div class="space-y-8 animate-in slide-in-from-bottom duration-500">
+                <div class="neu-flat rounded-3xl p-6 border-l-4 border-amber-500 border-t border-white/5"><div class="flex gap-3"><input type="text" id="wish-name" placeholder="Item name..." class="flex-grow neu-pressed rounded-xl px-4 py-3 outline-none text-white text-sm"><input type="number" id="wish-cost" placeholder="₹" class="w-24 neu-pressed rounded-xl px-4 py-3 outline-none text-white text-sm"><button onclick="addWishlistItem()" class="bg-indigo-600 text-white p-3 rounded-xl font-bold">+</button></div></div>
+                <div class="space-y-5">${appData.wishlist.map((item, idx) => `<div class="neu-flat p-6 rounded-[2rem] border-t border-white/5 flex items-center justify-between group transition-all ${item.purchased ? 'opacity-40' : ''}"><div class="flex items-center gap-5"><input type="checkbox" ${item.purchased ? 'checked' : ''} onchange="toggleWishItem(${idx})"><div class=""><span class="block font-bold text-gray-100 ${item.purchased ? 'line-through text-gray-500' : ''}">${item.name}</span><span class="text-xs font-bold text-indigo-400">₹${item.cost.toLocaleString()}</span></div></div><button onclick="deleteWishItem(${idx})" class="text-red-500 p-2 font-black text-[9px] uppercase tracking-tighter">Delete</button></div>`).join('')}</div>
+            </div>`;
+        }
+
+        function renderRetirementView(container) {
+            const prog = (appData.portfolioValue / RETIREMENT_GOAL) * 100;
+            container.innerHTML = `<div class="space-y-8 animate-in slide-in-from-bottom duration-500">
+                <div class="neu-flat rounded-[2.5rem] p-10 text-center border-t border-white/5"><h3 class="text-[10px] font-black text-gray-500 mb-4 uppercase tracking-[0.2em]">Retirement Target</h3><p class="text-4xl font-black text-indigo-400">₹4Cr</p><div class="mt-12 neu-pressed h-6 rounded-full overflow-hidden relative"><div class="progress-fill h-full bg-gradient-to-r from-indigo-600 to-indigo-400" style="width: ${Math.min(100, prog)}%"></div></div><p class="text-right text-[10px] font-black text-indigo-500 mt-4 tracking-widest">${prog.toFixed(2)}% ACHIEVED</p></div>
+                <div class="neu-flat rounded-[2.5rem] p-10 border-t border-white/5"><label class="text-[10px] font-black text-gray-500 uppercase mb-4 block text-center tracking-widest">Update Portfolio</label><div class="flex flex-col gap-6"><input type="number" id="inp-portfolio" value="${appData.portfolioValue || ''}" class="w-full text-2xl font-black neu-pressed rounded-2xl py-5 outline-none text-center text-white"><button onclick="updatePortfolio()" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black shadow-lg uppercase tracking-widest">Confirm Update</button></div></div>
+            </div>`;
+        }
+
+        function saveData() {
+            if (!appData.months[selectedMonth]) appData.months[selectedMonth] = defaultMonthData();
+            const m = appData.months[selectedMonth];
+            m.income.salary = Number(document.getElementById('inp-salary').value);
+            m.income.credits = Number(document.getElementById('inp-credits').value);
+            document.querySelectorAll('.expense-input').forEach(i => m.expenses[i.getAttribute('data-category')] = Number(i.value) || 0);
+            showToast("Logs Saved"); updateStats(false);
+        }
+
+        function exportData() {
+            const s = JSON.stringify(appData, null, 2), b = new Blob([s], { type: 'application/json' }), u = URL.createObjectURL(b), a = document.createElement('a');
+            a.href = u; a.download = `hisabkitab_backup_${new Date().toISOString().split('T')[0]}.json`; a.click(); showToast("Manual Backup Created");
+        }
+
+        function autoDownloadData() {
+            const s = JSON.stringify(appData), b = new Blob([s], { type: 'application/json' }), u = URL.createObjectURL(b), a = document.createElement('a');
+            a.href = u; a.download = `hisabkitab_auto_${selectedMonth}.json`; a.click();
+        }
+
+        function triggerImport() { document.getElementById('importFile').click(); }
+        function handleImport(e) {
+            const f = e.target.files[0]; if (!f) return;
+            const r = new FileReader(); r.onload = (event) => {
+                try {
+                    const d = JSON.parse(event.target.result);
+                    if (d.categories && d.months) { appData = d; localStorage.setItem('finance_pro_data', JSON.stringify(appData)); location.reload(); }
+                    else showToast("Invalid Data");
+                } catch(e) { showToast("Error Reading"); }
+            }; r.readAsText(f);
+        }
+
+        function updatePortfolio() { appData.portfolioValue = Number(document.getElementById('inp-portfolio').value) || 0; localStorage.setItem('finance_pro_data', JSON.stringify(appData)); renderRetirementView(document.getElementById('contentArea')); showToast("Updated Portfolio"); autoDownloadData(); }
+        function openCategoryModal() { document.getElementById('categoryModal').classList.remove('hidden'); document.getElementById('newCategoryName').focus(); }
+        function closeCategoryModal() { document.getElementById('categoryModal').classList.add('hidden'); document.getElementById('newCategoryName').value = ''; }
+        function confirmAddCategory() {
+            const n = document.getElementById('newCategoryName').value.trim();
+            if (n && !appData.categories.includes(n)) { appData.categories.push(n); Object.values(appData.months).forEach(m => m.expenses[n] = 0); renderCurrentView(); closeCategoryModal(); updateStats(false); }
+        }
+        function removeCategory(c) {
+            if (confirm(`Delete "${c}"? Data will be lost across all months.`)) { appData.categories = appData.categories.filter(x => x !== c); Object.values(appData.months).forEach(m => delete m.expenses[c]); renderCurrentView(); updateStats(false); }
+        }
+        function addWishlistItem() {
+            const n = document.getElementById('wish-name').value, c = Number(document.getElementById('wish-cost').value);
+            if (n && c) { appData.wishlist.unshift({ name: n, cost: c, purchased: false, purchasedMonth: null }); renderWishlistView(document.getElementById('contentArea')); updateStats(false); document.getElementById('wish-name').value = ''; document.getElementById('wish-cost').value = ''; }
+        }
+        function toggleWishItem(i) {
+            const item = appData.wishlist[i]; item.purchased = !item.purchased; item.purchasedMonth = item.purchased ? selectedMonth : null;
+            renderWishlistView(document.getElementById('contentArea')); updateStats(false);
+        }
+        function deleteWishItem(i) { appData.wishlist.splice(i, 1); renderWishlistView(document.getElementById('contentArea')); updateStats(false); }
+        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.remove('opacity-0'); setTimeout(() => t.classList.add('opacity-0'), 2000); }
+    </script>
+</body>
+</html>
